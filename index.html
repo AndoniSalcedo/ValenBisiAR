@@ -3,15 +3,15 @@
 		<meta charset="utf-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<title>Location-based AR.js demo</title>
-		<meta
-			aframe-injected=""
-			name="viewport"
-			content="width=device-width,initial-scale=1,maximum-scale=1,shrink-to-fit=no,user-scalable=no,minimal-ui,viewport-fit=cover"
-		/>
-		<meta aframe-injected="" name="mobile-web-app-capable" content="yes" />
-		<meta aframe-injected="" name="theme-color" content="black" />
 		<script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
-
+		<script
+			type="text/javascript"
+			src="https://raw.githack.com/AR-js-org/AR.js/master/three.js/build/ar-threex-location-only.js"
+		></script>
+		<script
+			type="text/javascript"
+			src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"
+		></script>
 		<script
 			type="text/javascript"
 			src="https://raw.githack.com/AR-js-org/AR.js/master/three.js/build/ar-threex-location-only.js"
@@ -91,31 +91,25 @@
 				},
 
 				getPOIS: async function (lat, long) {
-					/* 
-					const dist = 0.01;
-					const west = long - dist;
-					const east = long + dist;
-					const south = lat - dist;
-					const north = lat + dist; 
-					*/
+					const url2 =
+						"https://valencia.opendatasoft.com/api/records/1.0/search/?dataset=valenbisi-disponibilitat-valenbisi-dsiponibilidad&q=&geofilter.distance=39.47402866521183%2C-0.3762567909771192%2C1000";
+					const url = `https://valencia.opendatasoft.com/api/records/1.0/search/?dataset=valenbisi-disponibilitat-valenbisi-dsiponibilidad&q=&geofilter.distance=${lat}%2C${long}%2C1000`;
 
+					console.log(url2);
+					console.log(url);
 					// Download pois data from open street maps
-					const res = await fetch(
-						`https://valencia.opendatasoft.com/api/records/1.0/search/?dataset=valenbisi-disponibilitat-valenbisi-dsiponibilidad&q=&geofilter.distance=${lat},${long},1000`
-					);
+					const res = await fetch(url2);
 
 					const pois = await res.json();
 
-					pois.records.map((feature, index) => {
-						if (!feature.properties.hasOwnProperty("address")) {
-							return;
-						}
+					console.log(pois);
 
+					pois.records.map((feature, index) => {
 						const poi = document.createElement("a-entity");
 
 						poi.setAttribute("gps-new-entity-place", {
-							latitude: feature.geo_shape.coordinates[1],
-							longitude: feature.geo_shape.coordinates[0],
+							latitude: feature.fields.geo_shape.coordinates[1],
+							longitude: feature.fields.geo_shape.coordinates[0],
 						});
 						const tam = 3;
 						const id = "POI_" + index;
@@ -129,6 +123,7 @@
 						poi.setAttribute("poi", "distText:" + id + "_distText");
 
 						// Add geometry: sign post
+
 						const post = document.createElement("a-box");
 						post.setAttribute("scale", {
 							x: 2,
@@ -163,25 +158,36 @@
 						});
 						poi.appendChild(back);
 
+						const textDist = document.createElement("a-text");
+						textDist.setAttribute("id", id + "_distText");
+						textDist.setAttribute("position", {
+							x: 0,
+							y: 7,
+							z: 3,
+						});
+						textDist.setAttribute("value", "__ m.");
+						textDist.setAttribute("align", "center");
+						textDist.setAttribute("width", 40);
+						textDist.setAttribute("wrapcount", 20);
+						poi.appendChild(textDist);
+
 						// Add text
 						const text_name = document.createElement("a-text");
-						text_available.setAttribute("id", id + "_text_name");
+						text_name.setAttribute("id", id + "_text_name");
 						text_name.setAttribute("position", {
 							x: 0,
 							y: 9,
 							z: 3,
 						});
-						text_name.setAttribute("value", feature.address);
+						text_name.setAttribute("value", feature.fields.address);
 						text_name.setAttribute("align", "center");
 						text_name.setAttribute("width", 40);
 						text_name.setAttribute("wrapcount", 20);
 						poi.appendChild(text_name);
+
 						//////////////////////////////////////////////////
 						const text_available = document.createElement("a-text");
-						text_available.setAttribute(
-							"id",
-							id + "_text_available"
-						);
+						text_available.setAttribute("id", id + "_text_able");
 						text_available.setAttribute("position", {
 							x: 0,
 							y: 7,
@@ -189,7 +195,7 @@
 						});
 						text_available.setAttribute(
 							"value",
-							"Bicis disponibles" + feature.available
+							"Bicis disponibles " + feature.fields.available
 						);
 						text_available.setAttribute("align", "center");
 						text_available.setAttribute("width", 40);
@@ -205,17 +211,18 @@
 						});
 						text_free.setAttribute(
 							"value",
-							"Huecos libres" + feature.free
+							"Huecos libres " + feature.fields.free
 						);
 						text_free.setAttribute("align", "center");
 						text_free.setAttribute("width", 40);
 						text_free.setAttribute("wrapcount", 20);
 						poi.appendChild(text_free);
 						//////////////////////////////////////////////////
+
 						this.el.appendChild(poi);
 					});
 
-					console.log("loaded " + pois.records.length() + " POIs");
+					console.log("loaded " + pois.records.length + " POIs");
 					this.loadedPois = true;
 				},
 			});
@@ -227,60 +234,15 @@
 			vr-mode-ui="enabled: false"
 			arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: true"
 			renderer="antialias: true; alpha: true"
-			inspector=""
-			keyboard-shortcuts=""
-			screenshot=""
-			device-orientation-permission-ui=""
 		>
-			<!-- For debug Centro Valencia -->
-			<!-- <a-camera id="gps-new-camera" gps-new-camera='gpsMinDistance: 5; simulateLatitude: 39.47402866521183; simulateLongitude: -0.3762567909771192' camera="far:1000000;"></a-camera> -->
-
 			<a-camera
 				id="gps-new-camera"
 				gps-new-camera="gpsMinDistance: 5"
 				camera="far:10000;"
-				position=""
-				rotation=""
-				look-controls=""
-				wasd-controls=""
-				look-controls-enabled="true"
 			></a-camera>
 
-			<!-- Plaza del ayuntamiento de Valencia -->
-			<a-entity
-				material="color: red"
-				geometry="primitive: box"
-				gps-entity-place="latitude: 39.470021834872675; longitude: -0.37635147292514465"
-				scale="100 100 100"
-			></a-entity>
-
 			<!-- Load POIs -->
-			<a-entity id="POIS" load-pois=""> </a-entity>
-
-			<canvas
-				class="a-canvas a-grab-cursor"
-				data-aframe-canvas="true"
-				width="1202"
-				height="893"
-				style=""
-			></canvas>
-			<div class="a-loader-title" style="display: none">
-				Location-based AR.js demo
-			</div>
-			<a-entity arjs-webcam-texture=""></a-entity
-			><a-entity
-				light=""
-				data-aframe-default-light=""
-				aframe-injected=""
-			></a-entity
-			><a-entity
-				light=""
-				position=""
-				data-aframe-default-light=""
-				aframe-injected=""
-			></a-entity
-		></a-scene>
-
-		<video autoplay="true" playsinline="true" display="none"></video>
+			<a-entity id="POIS" load-pois> </a-entity>
+		</a-scene>
 	</body>
 </html>
