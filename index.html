@@ -17,6 +17,7 @@
 			AFRAME.registerComponent("poi", {
 				schema: {
 					distText: { type: "string", default: "poi" },
+					back: { type: "string", default: "poi" },
 				},
 
 				_cam3D: null,
@@ -49,7 +50,22 @@
 						"value",
 						"" + parseFloat(dist).toFixed(2) + " m."
 					);
+					const back = document.getElementById(this.data.back);
+					let color = "";
 
+					if (parseInt(dist) <= 200) {
+						color = "green";
+					} else if (parseInt(dist) < 350) {
+						color = "yellow";
+					} else if (parseInt(dist) < 500) {
+						color = "orange";
+					} else {
+						color = "red";
+					}
+
+					back.setAttribute("material", {
+						color: color,
+					});
 					// Compute size
 					this.el.setAttribute("scale", {
 						x: dist * 0.01,
@@ -81,7 +97,7 @@
 									e.detail.position.longitude
 								);
 
-								
+
 							}
 						}
 					); */
@@ -119,10 +135,14 @@
 							z: tam,
 						});
 
-						poi.setAttribute("poi", "distText:" + id + "_distText");
+						poi.setAttribute(
+							"poi",
+							"distText:" + id + "_distText; back:" + id + "_back"
+						);
 
 						// Add geometry: sign background
 						const back = document.createElement("a-box");
+						back.setAttribute("id", id + "_back");
 						back.setAttribute("scale", {
 							x: 30,
 							y: 14,
@@ -133,9 +153,7 @@
 							y: 6,
 							z: 0,
 						});
-						back.setAttribute("material", {
-							color: "red",
-						});
+
 						poi.appendChild(back);
 
 						// Add text
