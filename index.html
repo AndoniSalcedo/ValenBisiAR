@@ -12,14 +12,6 @@
 			type="text/javascript"
 			src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"
 		></script>
-		<script
-			type="text/javascript"
-			src="https://raw.githack.com/AR-js-org/AR.js/master/three.js/build/ar-threex-location-only.js"
-		></script>
-		<script
-			type="text/javascript"
-			src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"
-		></script>
 		<script>
 			// Component to handle each POI: look-at the camera, update distance and update size
 			AFRAME.registerComponent("poi", {
@@ -71,23 +63,32 @@
 			AFRAME.registerComponent("load-pois", {
 				loadedPois: false,
 
-				init: function () {
+				init: async function () {
 					// Register GPS position listener
-					const el = document.querySelector("[gps-new-camera]");
-					el.addEventListener("gps-camera-update-position", (e) => {
-						console.log(
-							"new camera position " +
-								e.detail.position.latitude +
-								", " +
-								e.detail.position.longitude
-						);
-						if (this.loadedPois == false) {
-							this.getPOIS(
-								e.detail.position.latitude,
-								e.detail.position.longitude
+					/* const el = document.querySelector("[gps-new-camera]");
+					el.addEventListener(
+						"gps-camera-update-position",
+						async (e) => {
+							console.log(
+								"new camera position " +
+									e.detail.position.latitude +
+									", " +
+									e.detail.position.longitude
 							);
+							if (this.loadedPois == false) {
+								await this.getPOIS(
+									e.detail.position.latitude,
+									e.detail.position.longitude
+								);
+
+								
+							}
 						}
-					});
+					); */
+
+					const latVal = 39.47402866521183;
+					const longVal = -0.3762567909771192;
+					await this.getPOIS(latVal, longVal);
 				},
 
 				getPOIS: async function (lat, long) {
@@ -102,9 +103,7 @@
 
 					const pois = await res.json();
 
-					console.log(pois);
-
-					pois.records.map((feature, index) => {
+					pois.records.forEach((feature, index) => {
 						const poi = document.createElement("a-entity");
 
 						poi.setAttribute("gps-new-entity-place", {
@@ -122,41 +121,35 @@
 
 						poi.setAttribute("poi", "distText:" + id + "_distText");
 
-						// Add geometry: sign post
-
-						const post = document.createElement("a-box");
-						post.setAttribute("scale", {
-							x: 2,
-							y: 5,
-							z: 2,
-						});
-						post.setAttribute("position", {
-							x: 0,
-							y: 2.5,
-							z: 0,
-						});
-						post.setAttribute("material", {
-							color: "red",
-						});
-
-						poi.appendChild(post);
-
 						// Add geometry: sign background
 						const back = document.createElement("a-box");
 						back.setAttribute("scale", {
-							x: 25,
-							y: 6,
+							x: 30,
+							y: 14,
 							z: 2,
 						});
 						back.setAttribute("position", {
 							x: 0,
-							y: 8,
+							y: 6,
 							z: 0,
 						});
 						back.setAttribute("material", {
 							color: "red",
 						});
 						poi.appendChild(back);
+
+						// Add text
+						const text_name = document.createElement("a-text");
+						text_name.setAttribute("position", {
+							x: 0,
+							y: 9,
+							z: 3,
+						});
+						text_name.setAttribute("value", feature.fields.address);
+						text_name.setAttribute("align", "center");
+						text_name.setAttribute("width", 40);
+						text_name.setAttribute("wrapcount", 20);
+						poi.appendChild(text_name);
 
 						const textDist = document.createElement("a-text");
 						textDist.setAttribute("id", id + "_distText");
@@ -171,26 +164,11 @@
 						textDist.setAttribute("wrapcount", 20);
 						poi.appendChild(textDist);
 
-						// Add text
-						const text_name = document.createElement("a-text");
-						text_name.setAttribute("id", id + "_text_name");
-						text_name.setAttribute("position", {
-							x: 0,
-							y: 9,
-							z: 3,
-						});
-						text_name.setAttribute("value", feature.fields.address);
-						text_name.setAttribute("align", "center");
-						text_name.setAttribute("width", 40);
-						text_name.setAttribute("wrapcount", 20);
-						poi.appendChild(text_name);
-
 						//////////////////////////////////////////////////
 						const text_available = document.createElement("a-text");
-						text_available.setAttribute("id", id + "_text_able");
 						text_available.setAttribute("position", {
 							x: 0,
-							y: 7,
+							y: 5,
 							z: 3,
 						});
 						text_available.setAttribute(
@@ -203,10 +181,9 @@
 						poi.appendChild(text_available);
 						//////////////////////////////////////////////////
 						const text_free = document.createElement("a-text");
-						text_free.setAttribute("id", id + "_text_free");
 						text_free.setAttribute("position", {
 							x: 0,
-							y: 7,
+							y: 3,
 							z: 3,
 						});
 						text_free.setAttribute(
@@ -237,9 +214,15 @@
 		>
 			<a-camera
 				id="gps-new-camera"
+				gps-new-camera="gpsMinDistance: 5; simulateLatitude: 39.47402866521183; simulateLongitude: -0.3762567909771192"
+				camera="far:1000000;"
+			></a-camera>
+
+			<!-- <a-camera
+				id="gps-new-camera"
 				gps-new-camera="gpsMinDistance: 5"
 				camera="far:10000;"
-			></a-camera>
+			></a-camera> -->
 
 			<!-- Load POIs -->
 			<a-entity id="POIS" load-pois> </a-entity>
