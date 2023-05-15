@@ -110,12 +110,13 @@
 				getPOIS: async function (lat, long) {
 					const url2 =
 						"https://valencia.opendatasoft.com/api/records/1.0/search/?dataset=valenbisi-disponibilitat-valenbisi-dsiponibilidad&q=&geofilter.distance=39.47402866521183%2C-0.3762567909771192%2C1000";
+
 					const url = `https://valencia.opendatasoft.com/api/records/1.0/search/?dataset=valenbisi-disponibilitat-valenbisi-dsiponibilidad&q=&geofilter.distance=${lat}%2C${long}%2C1000`;
 
 					console.log(url2);
 					console.log(url);
 					// Download pois data from open street maps
-					const res = await fetch(url2);
+					const res = await fetch(url);
 
 					const pois = await res.json();
 
